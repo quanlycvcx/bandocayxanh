@@ -6,7 +6,7 @@
     <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Hệ Thống Bản Đồ & Quản Lý Công Viên Cây Xanh</title>
+    <title>PCXCS2</title>
     
     <link rel="stylesheet" href="css/leaflet.css">
     <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
@@ -279,7 +279,7 @@
             <button id="custom-directions-btn" title="Tìm đường đi">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.91V15h-2v4.91c-2.92-.58-5.36-2.67-6.52-5.41l1.54-.77C6.67 15.17 9.17 17 12 17s5.33-1.83 6.98-4.27l1.54.77c-1.16 2.74-3.6 4.83-6.52 5.41zM7.5 10c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm9 0c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
             </button>
-            <button id="custom-image-ocr-btn" title="Trích xuất tọa độ từ ảnh Timemark">
+            <button id="custom-image-ocr-btn" title="Trích xuất ảnh có tọa độ">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5.04-6.71l-2.75 3.54-1.96-2.36L6.5 17h11l-3.54-4.71z"/></svg>
             </button>
             <a href="#" id="custom-upload-kmz-btn" title="Tải lên tệp KML hoặc KMZ">
@@ -294,7 +294,7 @@
         </div>
 
         <div id="route-summary-modal" style="display: none;">
-            <h4>Thông Tin Lộ Trình</h4>
+            <h4>Thông tin lộ trình</h4>
             <p>Khoảng cách: <span id="summary-distance">0.00 km</span></p>
             <p>Thời gian: <span id="summary-time">0 phút</span></p>
             <div style="margin-top: 8px; display: flex; gap: 5px; justify-content: center;">
@@ -306,17 +306,17 @@
 
     <div id="sidebar-container">
         <div class="sidebar-header">
-            <h1>HỆ THỐNG QUẢN LÝ CÔNG VIÊN - CÂY XANH</h1>
+            <h1>PHẠM VI QUẢN LÝ - PCXCS2</h1>
             <div class="status-group">
-                <div id="statusTD" class="status-badge st-loading">Thủ Đức: Đang tải...</div>
-                <div id="statusBD" class="status-badge st-loading">Bình Dương: Đang tải...</div>
+                <div id="statusTD" class="status-badge st-loading">Thủ Đức cũ: Đang tải...</div>
+                <div id="statusBD" class="status-badge st-loading">Bình Dương cũ: Đang tải...</div>
             </div>
         </div>
 
         <div class="nav-tabs">
-            <button class="tab-link active" onclick="switchTab(event, 'tabTD')">Khu vực Thủ Đức</button>
-            <button class="tab-link" onclick="switchTab(event, 'tabBD')">Khu vực Bình Dương</button>
-            <button class="tab-link" onclick="switchTab(event, 'tabOCRSidebar')">Xử lý Ảnh</button>
+            <button class="tab-link active" onclick="switchTab(event, 'tabTD')">Thủ Đức cũ</button>
+            <button class="tab-link" onclick="switchTab(event, 'tabBD')">Bình Dương cũ</button>
+            <button class="tab-link" onclick="switchTab(event, 'tabOCRSidebar')">Xuất tọa độ</button>
         </div>
 
         <div class="tab-body">
@@ -371,7 +371,7 @@
             </div>
 
             <div id="tabOCRSidebar" class="tab-content">
-                <p style="font-size: 12px; margin-bottom: 10px; color: var(--text-secondary);">Kéo thả hoặc chọn ảnh Timemark tại đây để phân tích dữ liệu nhanh sang cấu trúc bản đồ:</p>
+                <p style="font-size: 12px; margin-bottom: 10px; color: var(--text-secondary);">Kéo thả hoặc chọn ảnh có Tọa độ tại đây để phân tích dữ liệu nhanh sang cấu trúc bản đồ:</p>
                 <div class="dropzone" id="sidebar-dropzone">
                     <p style="font-size:12px;">Nhấp vào đây hoặc thả ảnh hiện trường</p>
                     <input type="file" id="sidebarFileInput" accept="image/*" style="display:none">
@@ -410,9 +410,9 @@
 <div id="ocr-modal" class="modal-overlay">
     <div class="modal-content">
         <button class="modal-close-btn" onclick="toggleOcrModal(false)">×</button>
-        <h3>Trích xuất dữ liệu ảnh Timemark</h3>
+        <h3>Trích xuất dữ liệu ảnh có tọa độ</h3>
         <div class="dropzone" id="dropzone">
-            <p>Kéo thả hình ảnh mốc vào đây hoặc nhấp để duyệt file</p>
+            <p>Kéo thả hình ảnh tọa độ vào đây hoặc nhấp để duyệt file</p>
             <input type="file" id="fileInput" accept="image/*" style="display:none">
         </div>
         <div id="ocrResultSection" style="display:none;">
@@ -530,10 +530,10 @@
 
     var overlaysTree = [
         {label: '<b>Mưa trực tuyến</b>', children: [
-            {label: "Hydro Estimator Rainfall", layer: layer_HydroEstimatorRainfal_1},
+            {label: "Lượng mưa ước tính", layer: layer_HydroEstimatorRainfal_1},
             {label: "Ranh giới Phường - Xã", layer: layer_PhngX_2},
-            {label: "Hệ thống Giao thông KV2", layer: layer_GT_KV2_11_1},
-            {label: "Bản đồ Vệ tinh Google", layer: layer_GEHybrid_0}
+            {label: "Phạm vi quản lý KV2", layer: layer_GT_KV2_11_1},
+            {label: "Ảnh Google Hybrid", layer: layer_GEHybrid_0}
         ]}
     ];
     L.control.layers.tree(null, overlaysTree, { collapsed: true }).addTo(map);
@@ -882,7 +882,7 @@
                 date: dateMatch ? dateMatch[0] : "Không rõ"
             };
         }
-        alert("Không trích xuất được tọa độ từ ảnh này.");
+        alert("Không trích xuất được tọa độ từ ảnh này. Vui lòng, upload lại ảnh có tọa độ rõ ràng.");
         return null;
     }
 
