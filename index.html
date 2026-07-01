@@ -310,6 +310,8 @@
             <div class="status-group">
                 <div id="statusTD" class="status-badge st-loading">Thủ Đức cũ: Đang tải...</div>
                 <div id="statusBD" class="status-badge st-loading">Bình Dương cũ: Đang tải...</div>
+                <!-- Badge hiển thị trạng thái lớp cây xanh nền mới -->
+                <div id="statusCloudTrees" class="status-badge st-loading">Cây xanh Cloud: Đang tải...</div>
             </div>
         </div>
 
@@ -528,8 +530,92 @@
     });
     map.addLayer(layer_HydroEstimatorRainfal_1);
 
+    // TÍCH HỢP TÍNH NĂNG TỪ FILE CONGTACDINHVICAYXANH SANG LEAFLET
+    const CLOUD_TREE_APP_URL = 'https://script.google.com/macros/s/AKfycbyIarwHrEIqU0Ih308ZRgkfXJi-LvBUcpqe8Ao33IA7L712tIHyltskoBHgAq_aMlijjQ/exec';
+    
+    // Khởi tạo Marker Cluster để gom cụm tối ưu hóa bản đồ Leaflet
+    var layerCloudTreesCluster = L.markerClusterGroup({
+        disableClusteringAtZoom: 17,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false
+    });
+    map.addLayer(layerCloudTreesCluster); // Add mặc định vào map như yêu cầu
+
+    function parseCloudCoordinate(coordStr) {
+        if (!coordStr) return NaN;
+        let normalized = coordStr.toString().replace(',', '.');
+        return parseFloat(normalized);
+    }
+
+    async function loadCloudTrees() {
+        layerCloudTreesCluster.clearLayers();
+        const badge = document.getElementById('statusCloudTrees');
+        
+        try {
+            const response = await fetch(CLOUD_TREE_APP_URL, { method: 'GET', redirect: 'follow' });
+            if (!response.ok) throw new Error("Mạng lỗi");
+            const result = await response.json();
+            
+            if (result.status === "success" && result.data && result.data.length > 0) {
+                let validCount = 0;
+
+                result.data.forEach(tree => {
+                    // Rà soát linh hoạt hoa thường X, Y từ Sheet như file 1
+                    const coordXVal = tree.coordX || tree.CoordX || tree.COORDX || '';
+                    const coordYVal = tree.coordY || tree.CoordY || tree.COORDY || '';
+                    
+                    const lng = parseCloudCoordinate(coordXVal);
+                    const lat = parseCloudCoordinate(coordYVal);
+
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        validCount++;
+
+                        // Rà soát linh hoạt tên cột thuộc tính của cây
+                        const maSoCayHienThi = tree.masocay || tree.MaSoCay || tree.MASOCAY || tree.masốcây || '-';
+                        const loaiCayHienThi = tree.species || tree.Species || tree.SPECIES || tree.loaicay || tree.LoaiCay || 'Chưa rõ';
+                        const tuyenDuongHienThi = tree.street_park || tree.Street_park || tree.STREET_PARK || tree.tenduong || '-';
+                        const tinhTrangHienThi = tree.nho || tree.Nho || tree.NHO || tree.tinhtrang || 'Bình thường';
+
+                        // Vẽ điểm Marker dạng hình tròn màu xanh lá viền trắng như cấu trúc Google Maps của file 1
+                        var marker = L.circleMarker([lat, lng], {
+                            radius: 6,
+                            fillColor: '#43a047',
+                            color: '#ffffff',
+                            weight: 1.5,
+                            opacity: 1,
+                            fillOpacity: 0.9
+                        });
+
+                        // Tạo nội dung popup hiển thị thông tin trực quan khi click vào cây
+                        const popupText = `<div style="font-size:13px; color:#333; line-height:1.4; padding:3px; font-family:sans-serif; min-width:180px;">
+                                            <b style="color:#2e7d32; display:block; margin-bottom:4px; font-size:14px;">🌳 CÂY XANH NỀN</b>
+                                            <b>Mã số cây:</b> ${maSoCayHienThi}<br>
+                                            <b>Loài cây:</b> ${loaiCayHienThi}<br>
+                                            <b>Tuyến đường:</b> ${tuyenDuongHienThi}<br>
+                                            <b>Tình trạng:</b> ${tinhTrangHienThi}
+                                          </div>`;
+                        
+                        marker.bindPopup(popupText);
+                        layerCloudTreesCluster.addLayer(marker);
+                    }
+                });
+
+                badge.className = 'status-badge st-success';
+                badge.innerText = `Cây xanh Cloud: ${validCount} cây`;
+                showToast(`Đã hiển thị mặc định ${validCount} cây xanh nền từ hệ thống Cloud.`, "success");
+            }
+        } catch (err) {
+            console.error("Lỗi đồng bộ cây nền: ", err);
+            badge.className = 'status-badge st-error';
+            badge.innerText = 'Lỗi kết nối cây nền!';
+            showToast("Không thể kết nối dữ liệu nền cây xanh Cloud.", "error");
+        }
+    }
+
+    // Tích hợp lớp bản đồ cây xanh vào cây quản lý layer (L.control.layers.tree)
     var overlaysTree = [
         {label: '<b>Lớp dữ liệu:</b>', children: [
+            {label: "Cây xanh nền Cloud (Đồng bộ)", layer: layerCloudTreesCluster},
             {label: "Lượng mưa ước tính", layer: layer_HydroEstimatorRainfal_1},
             {label: "Ranh giới Phường - Xã", layer: layer_PhngX_2},
             {label: "Phạm vi quản lý KV2", layer: layer_GT_KV2_11_1},
@@ -943,9 +1029,10 @@
         }).catch(() => { showToast("Lỗi định dạng tệp.", "error"); toggleLoading(false); });
     }
 
-    // --- KHỞI CHẠY HỆ THỐNG ---
+    // --- KHỞI CHẠY HỆ THỐNG TOÀN DIỆN ---
     loadSheet(URL_TD, 'TD');
     loadSheet(URL_BD, 'BD');
+    loadCloudTrees(); // Tự động gọi tải lớp cây xanh nền mặc định từ dữ liệu Cloud
 
     ['inTD_Street', 'inTD_Ward', 'inTD_Comp', 'inBD_Street', 'inBD_Ward', 'inBD_Comp'].forEach(id => {
         document.getElementById(id).addEventListener('input', () => searchData(id.includes('TD') ? 'TD' : 'BD'));
